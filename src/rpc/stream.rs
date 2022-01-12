@@ -30,11 +30,11 @@ pub struct Body {
 }
 
 #[derive(Serialize)]
-pub struct BodyRef<'a, T: serde::Serialize> {
+pub struct BodyRef<'a, T: serde::Serialize, U: serde::Serialize> {
     pub name: &'a [&'a str],
     #[serde(rename = "type")]
     pub rpc_type: RpcType,
-    pub args: &'a T,
+    pub args: (&'a T, &'a Option<U>),
 }
 
 #[derive(Clone, Copy, Serialize, Deserialize, Debug, PartialEq)]
@@ -204,18 +204,19 @@ impl<W: io::Write + Unpin> RpcWriter<W> {
         }
     }
 
-    pub async fn send_request<T: serde::Serialize>(
+    pub async fn send_request<T: serde::Serialize, U: serde::Serialize>(
         &mut self,
         name: &[&str],
         rpc_type: RpcType,
         args: &T,
+        opts: &Option<U>,
     ) -> Result<RequestNo> {
         self.req_no += 1;
 
         let body_str = serde_json::to_string(&BodyRef {
             name,
             rpc_type,
-            args: &[&args],
+            args: (&args, opts),
         })?;
 
         let rpc_header = Header {

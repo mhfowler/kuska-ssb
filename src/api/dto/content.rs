@@ -52,10 +52,10 @@ pub enum VoteValue {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Vote {
-    link: SsbHash,
-    value: VoteValue,
+    pub link: SsbHash,
+    pub value: VoteValue,
     #[serde(skip_serializing_if = "Option::is_none")]
-    expression: Option<String>,
+    pub expression: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -153,4 +153,15 @@ pub enum SubsetQuery {
     Author { op: String, feed: SsbId },
     And { op: String, args: Vec<SubsetQuery> },
     Or { op: String, args: Vec<SubsetQuery> },
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SubsetQueryOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub descending: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keys: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "pageLimit")]
+    pub page_limit: Option<u32>,
 }
