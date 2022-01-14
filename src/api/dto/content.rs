@@ -165,3 +165,9 @@ pub struct SubsetQueryOptions {
     #[serde(rename = "pageLimit")]
     pub page_limit: Option<u32>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FriendsIsFollowingOpts {
+    pub source: String,
+    pub dest: String,
+}

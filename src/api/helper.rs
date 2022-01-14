@@ -4,6 +4,7 @@ use crate::{
     rpc::{Body, BodyType, RequestNo, RpcType, RpcWriter},
 };
 use async_std::io::Write;
+use crate::api::dto::content::FriendsIsFollowingOpts;
 
 use super::{dto, error::Result};
 
@@ -13,6 +14,9 @@ const MAX_RPC_BODY_LEN: usize = 65536;
 pub enum ApiMethod {
     GetSubset,
     Publish,
+    FriendsFollow,
+    FriendsIsFollowing,
+    FriendsBlock,
     WhoAmI,
     Get,
     CreateHistoryStream,
@@ -28,6 +32,9 @@ impl ApiMethod {
         match self {
             GetSubset => &["partialReplication", "getSubset"],
             Publish => &["publish"],
+            FriendsFollow => &["friends", "follow"],
+            FriendsIsFollowing => &["friends", "isFollowing"],
+            FriendsBlock => &["friends", "block"],
             WhoAmI => &["whoami"],
             Get => &["get"],
             CreateHistoryStream => &["createHistoryStream"],
@@ -42,6 +49,9 @@ impl ApiMethod {
         match s {
             ["partialReplication", "getSubset"] => Some(GetSubset),
             ["publish"] => Some(Publish),
+            ["friends", "follow"] => Some(FriendsFollow),
+            ["friends", "isFollowing"] => Some(FriendsIsFollowing),
+            ["friends", "block"] => Some(FriendsBlock),
             ["whoami"] => Some(WhoAmI),
             ["get"] => Some(Get),
             ["createHistoryStream"] => Some(CreateHistoryStream),
@@ -110,6 +120,60 @@ impl<W: Write + Unpin> ApiCaller<W> {
             .rpc
             .send_response(req_no, RpcType::Async, BodyType::JSON, msg_ref.as_bytes())
             .await?)
+    }
+
+    /// Send ["friends", "block"] request.
+    pub async fn friends_block_req_send(&mut self) -> Result<RequestNo> {
+        let args: [&str; 0] = []; // todo: add this
+        let req_no = self
+            .rpc
+            .send_request(
+                ApiMethod::FriendsBlock.selector(),
+                RpcType::Async,
+                &args,
+                // specify None value for `opts`
+                &None::<()>,
+            )
+            .await?;
+        Ok(req_no)
+    }
+
+
+    /// Send ["friends", "isfollowing"] request.
+    pub async fn friends_isfollowing_req_send(&mut self, src_id: &str, dest_id: &str) -> Result<RequestNo> {
+        let args = FriendsIsFollowingOpts {
+            source: src_id.to_string(),
+            dest: dest_id.to_string()
+        };
+        let req_no = self
+            .rpc
+            .send_request(
+                ApiMethod::FriendsIsFollowing.selector(),
+                RpcType::Async,
+                &args,
+                // specify None value for `opts`
+                &None::<()>,
+            )
+            .await?;
+        Ok(req_no)
+    }
+
+
+    /// Send ["friends", "follow"] request.
+    pub async fn friends_follow_req_send(&mut self, ssb_id: &str) -> Result<RequestNo> {
+        let args: [&str; 1] = [ssb_id]; // todo: add this
+        let req_no = self
+            .rpc
+
+            .send_request(
+                ApiMethod::FriendsFollow.selector(),
+                RpcType::Async,
+                &args,
+                // specify None value for `opts`
+                &None::<()>,
+            )
+            .await?;
+        Ok(req_no)
     }
 
     /// Send ["whoami"] request.
