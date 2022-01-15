@@ -171,3 +171,33 @@ pub struct FriendsIsFollowingOpts {
     pub source: String,
     pub dest: String,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FriendsIsBlockingOpts {
+    pub source: String,
+    pub dest: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FriendsHopsOpts {
+    ///  a max distance, where nodes beyond this distance are omitted from the output
+    pub max: i32,
+    /// when true, the output is the hops distance to opts.start, instead of from
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reverse: Option<bool>,
+    /// feed ID of the "central" node where distance is zero. (Default: sbot.id)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FriendsFollowOpts {
+    /// whether you are asserting (true) or undoing (false) a follow.
+    pub state: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FriendsBlockOpts {
+    /// whether you are asserting (true) or undoing (false) a block.
+    pub state: bool,
+}

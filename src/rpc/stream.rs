@@ -222,20 +222,16 @@ impl<W: io::Write + Unpin> RpcWriter<W> {
         self.req_no += 1;
 
         let body_str = match opts {
-            Some(_) => {
-                serde_json::to_string(&BodyRefWithOpts {
-                    name,
-                    rpc_type,
-                    args: (&args, opts),
-                })?
-            },
-            None => {
-                serde_json::to_string(&BodyRef {
-                    name,
-                    rpc_type,
-                    args: &[&args],
-                })?
-            }
+            Some(_) => serde_json::to_string(&BodyRefWithOpts {
+                name,
+                rpc_type,
+                args: (&args, opts),
+            })?,
+            None => serde_json::to_string(&BodyRef {
+                name,
+                rpc_type,
+                args: &[&args],
+            })?,
         };
 
         let rpc_header = Header {

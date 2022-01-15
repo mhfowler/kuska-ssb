@@ -4,7 +4,7 @@ use crate::{
     rpc::{Body, BodyType, RequestNo, RpcType, RpcWriter},
 };
 use async_std::io::Write;
-use crate::api::dto::content::FriendsIsFollowingOpts;
+use crate::api::dto::content::{FriendsIsFollowingOpts, FriendsIsBlockingOpts, FriendsFollowOpts, FriendsBlockOpts, FriendsHopsOpts};
 
 use super::{dto, error::Result};
 
@@ -15,8 +15,10 @@ pub enum ApiMethod {
     GetSubset,
     Publish,
     FriendsFollow,
-    FriendsIsFollowing,
     FriendsBlock,
+    FriendsIsFollowing,
+    FriendsIsBlocking,
+    FriendsHops,
     WhoAmI,
     Get,
     CreateHistoryStream,
@@ -33,8 +35,10 @@ impl ApiMethod {
             GetSubset => &["partialReplication", "getSubset"],
             Publish => &["publish"],
             FriendsFollow => &["friends", "follow"],
-            FriendsIsFollowing => &["friends", "isFollowing"],
             FriendsBlock => &["friends", "block"],
+            FriendsIsFollowing => &["friends", "isFollowing"],
+            FriendsIsBlocking => &["friends", "isBlocking"],
+            FriendsHops => &["friends", "hops"],
             WhoAmI => &["whoami"],
             Get => &["get"],
             CreateHistoryStream => &["createHistoryStream"],
@@ -50,8 +54,10 @@ impl ApiMethod {
             ["partialReplication", "getSubset"] => Some(GetSubset),
             ["publish"] => Some(Publish),
             ["friends", "follow"] => Some(FriendsFollow),
-            ["friends", "isFollowing"] => Some(FriendsIsFollowing),
             ["friends", "block"] => Some(FriendsBlock),
+            ["friends", "isFollowing"] => Some(FriendsIsFollowing),
+            ["friends", "isBlocking"] => Some(FriendsIsBlocking),
+            ["friends", "hops"] => Some(FriendsHops),
             ["whoami"] => Some(WhoAmI),
             ["get"] => Some(Get),
             ["createHistoryStream"] => Some(CreateHistoryStream),
@@ -158,17 +164,51 @@ impl<W: Write + Unpin> ApiCaller<W> {
         Ok(req_no)
     }
 
-
-    /// Send ["friends", "follow"] request.
-    pub async fn friends_follow_req_send(&mut self, ssb_id: &str) -> Result<RequestNo> {
-        let args: [&str; 1] = [ssb_id]; // todo: add this
+    /// Send ["friends", "isblocking"] request.
+    pub async fn friends_isblocking_req_send(&mut self, src_id: &str, dest_id: &str) -> Result<RequestNo> {
+        let args = FriendsIsBlockingOpts {
+            source: src_id.to_string(),
+            dest: dest_id.to_string()
+        };
         let req_no = self
             .rpc
+            .send_request(
+                ApiMethod::FriendsIsBlocking.selector(),
+                RpcType::Async,
+                &args,
+                // specify None value for `opts`
+                &None::<()>,
+            )
+            .await?;
+        Ok(req_no)
+    }
 
+    /// Send ["friends", "follow"] request.
+    pub async fn friends_follow_req_send(&mut self, ssb_id: &str, state: bool) -> Result<RequestNo> {
+        let args = FriendsFollowOpts {
+            state,
+        };
+        let req_no = self
+            .rpc
             .send_request(
                 ApiMethod::FriendsFollow.selector(),
                 RpcType::Async,
                 &args,
+                // specify None value for `opts`
+                &None::<()>,
+            )
+            .await?;
+        Ok(req_no)
+    }
+
+    /// Send ["friends", "hops"] request
+    pub async fn friends_hops_req_send(&mut self, opts: FriendsHopsOpts) -> Result<RequestNo> {
+        let req_no = self
+            .rpc
+            .send_request(
+                ApiMethod::FriendsHops.selector(),
+                RpcType::Source,
+                &opts,
                 // specify None value for `opts`
                 &None::<()>,
             )
