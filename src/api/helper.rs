@@ -194,20 +194,24 @@ impl<W: Write + Unpin> ApiCaller<W> {
     }
 
     /// Send ["friends", "follow"] request.
+    ///
     pub async fn friends_follow_req_send(
         &mut self,
         ssb_id: &str,
         state: bool,
     ) -> Result<RequestNo> {
-        let args = FriendsFollowOpts { state };
+        let args: [&str; 1] = [ssb_id];
+        let opts = FriendsFollowOpts { state };
+        // TODO: not sure how args and opts should be passed for this function
+        // currently gets error:
+        // Application error: Sbot returned an error response: muxrpc: no such command: friends.follow
         let req_no = self
             .rpc
             .send_request(
                 ApiMethod::FriendsFollow.selector(),
                 RpcType::Async,
                 &args,
-                // specify None value for `opts`
-                &None::<()>,
+                &Some(opts),
             )
             .await?;
         Ok(req_no)
