@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 pub type SsbHash = String;
 pub type SsbId = String;
+pub type SsbMsgType = String;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Mention {
@@ -51,10 +52,10 @@ pub enum VoteValue {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Vote {
-    link: SsbHash,
-    value: VoteValue,
+    pub link: SsbHash,
+    pub value: VoteValue,
     #[serde(skip_serializing_if = "Option::is_none")]
-    expression: Option<String>,
+    pub expression: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -141,4 +142,62 @@ pub enum TypedMessage {
     Channel { channel: String, subscribed: bool },
     #[serde(rename = "vote")]
     Vote { vote: Vote },
+}
+
+/// An ssb-ql-1 query as defined by the 'Subset replication for SSB'
+/// specification.
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum SubsetQuery {
+    Type { op: String, string: SsbMsgType },
+    Author { op: String, feed: SsbId },
+    And { op: String, args: Vec<SubsetQuery> },
+    Or { op: String, args: Vec<SubsetQuery> },
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct SubsetQueryOptions {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub descending: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub keys: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(rename = "pageLimit")]
+    pub page_limit: Option<u32>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FriendsIsFollowingOpts {
+    pub source: String,
+    pub dest: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FriendsIsBlockingOpts {
+    pub source: String,
+    pub dest: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FriendsHopsOpts {
+    ///  a max distance, where nodes beyond this distance are omitted from the output
+    pub max: i32,
+    /// when true, the output is the hops distance to opts.start, instead of from
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reverse: Option<bool>,
+    /// feed ID of the "central" node where distance is zero. (Default: sbot.id)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub start: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FriendsFollowOpts {
+    /// whether you are asserting (true) or undoing (false) a follow.
+    pub state: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FriendsBlockOpts {
+    /// whether you are asserting (true) or undoing (false) a block.
+    pub state: bool,
 }
