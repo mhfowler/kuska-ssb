@@ -1,10 +1,13 @@
+use crate::api::dto::content::{
+    FriendsBlockOpts, FriendsFollowOpts, FriendsHopsOpts, FriendsIsBlockingOpts,
+    FriendsIsFollowingOpts,
+};
 use crate::{
     api::dto::content::{SubsetQuery, SubsetQueryOptions, TypedMessage},
     feed::Message,
     rpc::{Body, BodyType, RequestNo, RpcType, RpcWriter},
 };
 use async_std::io::Write;
-use crate::api::dto::content::{FriendsIsFollowingOpts, FriendsIsBlockingOpts, FriendsFollowOpts, FriendsBlockOpts, FriendsHopsOpts};
 
 use super::{dto, error::Result};
 
@@ -144,12 +147,15 @@ impl<W: Write + Unpin> ApiCaller<W> {
         Ok(req_no)
     }
 
-
     /// Send ["friends", "isfollowing"] request.
-    pub async fn friends_isfollowing_req_send(&mut self, src_id: &str, dest_id: &str) -> Result<RequestNo> {
+    pub async fn friends_isfollowing_req_send(
+        &mut self,
+        src_id: &str,
+        dest_id: &str,
+    ) -> Result<RequestNo> {
         let args = FriendsIsFollowingOpts {
             source: src_id.to_string(),
-            dest: dest_id.to_string()
+            dest: dest_id.to_string(),
         };
         let req_no = self
             .rpc
@@ -165,10 +171,14 @@ impl<W: Write + Unpin> ApiCaller<W> {
     }
 
     /// Send ["friends", "isblocking"] request.
-    pub async fn friends_isblocking_req_send(&mut self, src_id: &str, dest_id: &str) -> Result<RequestNo> {
+    pub async fn friends_isblocking_req_send(
+        &mut self,
+        src_id: &str,
+        dest_id: &str,
+    ) -> Result<RequestNo> {
         let args = FriendsIsBlockingOpts {
             source: src_id.to_string(),
-            dest: dest_id.to_string()
+            dest: dest_id.to_string(),
         };
         let req_no = self
             .rpc
@@ -184,10 +194,12 @@ impl<W: Write + Unpin> ApiCaller<W> {
     }
 
     /// Send ["friends", "follow"] request.
-    pub async fn friends_follow_req_send(&mut self, ssb_id: &str, state: bool) -> Result<RequestNo> {
-        let args = FriendsFollowOpts {
-            state,
-        };
+    pub async fn friends_follow_req_send(
+        &mut self,
+        ssb_id: &str,
+        state: bool,
+    ) -> Result<RequestNo> {
+        let args = FriendsFollowOpts { state };
         let req_no = self
             .rpc
             .send_request(
