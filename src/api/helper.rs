@@ -1,7 +1,5 @@
-use crate::api::dto::content::{
-    FriendsBlockOpts, FriendsFollowOpts, FriendsHopsOpts, FriendsIsBlockingOpts,
-    FriendsIsFollowingOpts,
-};
+use crate::api::dto::content::{FriendsBlockOpts, FriendsFollowOpts, FriendsHopsOpts,
+                               FriendsIsBlockingOpts, FriendsIsFollowingOpts, InviteCreateOpts};
 use crate::{
     api::dto::content::{SubsetQuery, SubsetQueryOptions, TypedMessage},
     feed::Message,
@@ -22,6 +20,8 @@ pub enum ApiMethod {
     FriendsIsFollowing,
     FriendsIsBlocking,
     FriendsHops,
+    InviteCreate,
+    InviteUse,
     WhoAmI,
     Get,
     CreateHistoryStream,
@@ -42,6 +42,8 @@ impl ApiMethod {
             FriendsIsFollowing => &["friends", "isFollowing"],
             FriendsIsBlocking => &["friends", "isBlocking"],
             FriendsHops => &["friends", "hops"],
+            InviteCreate => &["invite", "create"],
+            InviteUse => &["invite", "use"],
             WhoAmI => &["whoami"],
             Get => &["get"],
             CreateHistoryStream => &["createHistoryStream"],
@@ -61,6 +63,8 @@ impl ApiMethod {
             ["friends", "isFollowing"] => Some(FriendsIsFollowing),
             ["friends", "isBlocking"] => Some(FriendsIsBlocking),
             ["friends", "hops"] => Some(FriendsHops),
+            ["invite", "create"] => Some(InviteCreate),
+            ["invite", "use"] => Some(InviteUse),
             ["whoami"] => Some(WhoAmI),
             ["get"] => Some(Get),
             ["createHistoryStream"] => Some(CreateHistoryStream),
@@ -194,7 +198,7 @@ impl<W: Write + Unpin> ApiCaller<W> {
     }
 
     /// Send ["friends", "follow"] request.
-    ///
+    /// currently not working
     pub async fn friends_follow_req_send(
         &mut self,
         ssb_id: &str,
@@ -225,6 +229,46 @@ impl<W: Write + Unpin> ApiCaller<W> {
                 ApiMethod::FriendsHops.selector(),
                 RpcType::Source,
                 &opts,
+                // specify None value for `opts`
+                &None::<()>,
+            )
+            .await?;
+        Ok(req_no)
+    }
+
+    /// Send ["invite", "create"] request.
+    pub async fn invite_create_req_send(
+        &mut self,
+        uses: i32,
+    ) -> Result<RequestNo> {
+        let args = InviteCreateOpts {
+            uses,
+        };
+        let req_no = self
+            .rpc
+            .send_request(
+                ApiMethod::InviteCreate.selector(),
+                RpcType::Async,
+                &args,
+                // specify None value for `opts`
+                &None::<()>,
+            )
+            .await?;
+        Ok(req_no)
+    }
+
+    /// Send ["invite", "use"] request.
+    pub async fn invite_use_req_send(
+        &mut self,
+        invite_link: &str,
+    ) -> Result<RequestNo> {
+        let args: [&str; 1] = [invite_link];
+        let req_no = self
+            .rpc
+            .send_request(
+                ApiMethod::InviteUse.selector(),
+                RpcType::Async,
+                &args,
                 // specify None value for `opts`
                 &None::<()>,
             )

@@ -201,3 +201,9 @@ pub struct FriendsBlockOpts {
     /// whether you are asserting (true) or undoing (false) a block.
     pub state: bool,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct InviteCreateOpts {
+    /// number of times the invite can be used
+    pub uses: i32,
+}
